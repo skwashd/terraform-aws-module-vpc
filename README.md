@@ -73,7 +73,7 @@ No modules.
 | <a name="input_logging_bucket_flows"></a> [logging\_bucket\_flows](#input\_logging\_bucket\_flows) | Name of the S3 bucket to use for logging VPC flows. | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | The name of the VPC. | `string` | n/a | yes |
 | <a name="input_org_id"></a> [org\_id](#input\_org\_id) | ID of the AWS Organisation for this account. | `string` | n/a | yes |
-| <a name="input_org_units"></a> [org\_units](#input\_org\_units) | List of OUs ARNs that can access the VPC. If empty access is limited to the Organization. | `list(string)` | `[]` | no |
+| <a name="input_org_units"></a> [org\_units](#input\_org\_units) | Map of of OU OrgPaths -> ARNs that can access the VPC. If empty access is limited to the Organization. | <pre>map(<br/>    object({<br/>      arn  = string<br/>      path = string<br/>    })<br/>  )</pre> | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to add resources provisioned. | `map(string)` | `{}` | no |
 
 ## Outputs

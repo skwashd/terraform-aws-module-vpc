@@ -43,8 +43,14 @@ data "aws_iam_policy_document" "endpoint_gateway_dynamodb" {
 
       condition {
         test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
+        variable = length(var.org_units) > 0 ? "aws:ResourceOrgPaths" : "aws:ResourceOrgID"
+        values   = local.org_paths
+      }
+
+      condition {
+        test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
         variable = length(var.org_units) > 0 ? "aws:PrincipalOrgPaths" : "aws:PrincipalOrgID"
-        values   = length(var.org_units) > 0 ? local.shared_principals : [data.aws_organizations_organization.this.id]
+        values   = local.org_paths
       }
 
       principals {
@@ -114,8 +120,14 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
 
       condition {
         test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
+        variable = length(var.org_units) > 0 ? "aws:ResourceOrgPaths" : "aws:ResourceOrgID"
+        values   = local.org_paths
+      }
+
+      condition {
+        test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
         variable = length(var.org_units) > 0 ? "aws:PrincipalOrgPaths" : "aws:PrincipalOrgID"
-        values   = length(var.org_units) > 0 ? local.shared_principals : [data.aws_organizations_organization.this.id]
+        values   = local.org_paths
       }
 
       principals {
@@ -223,10 +235,12 @@ data "aws_iam_policy_document" "interface_endpoints" {
   for_each = local.interface_endpoints
 
   statement {
-    actions = ["*"]
+    actions = [
+      "${split(".", each.key)[0]}:*",
+    ]
 
     principals {
-      type        = "AWS"
+      type        = "*" # Allow all principals, not just IAM principals
       identifiers = ["*"]
     }
 
@@ -234,8 +248,14 @@ data "aws_iam_policy_document" "interface_endpoints" {
 
     condition {
       test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
+      variable = length(var.org_units) > 0 ? "aws:ResourceOrgPaths" : "aws:ResourceOrgID"
+      values   = local.org_paths
+    }
+
+    condition {
+      test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
       variable = length(var.org_units) > 0 ? "aws:PrincipalOrgPaths" : "aws:PrincipalOrgID"
-      values   = length(var.org_units) > 0 ? local.shared_principals : [data.aws_organizations_organization.this.id]
+      values   = local.org_paths
     }
   }
 }

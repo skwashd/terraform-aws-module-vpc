@@ -50,9 +50,14 @@ variable "org_id" {
 }
 
 variable "org_units" {
-  description = "List of OUs ARNs that can access the VPC. If empty access is limited to the Organization."
-  type        = list(string)
-  default     = []
+  description = "Map of of OU OrgPaths -> ARNs that can access the VPC. If empty access is limited to the Organization."
+  type = map(
+    object({
+      arn  = string
+      path = string
+    })
+  )
+  default = {}
 }
 
 variable "tags" {
@@ -75,5 +80,6 @@ variable "tags" {
 locals {
   azs = length(var.azs) == 0 ? data.aws_availability_zones.available.names : var.azs
 
-  shared_principals = toset(length(var.org_units) > 0 ? var.org_units : [data.aws_organizations_organization.this.arn])
+  shared_principals = toset(length(var.org_units) > 0 ? [for ou in var.org_units : ou.arn] : [data.aws_organizations_organization.this.arn])
+  org_paths         = toset(length(var.org_units) > 0 ? [for ou in var.org_units : ou.path] : [data.aws_organizations_organization.this.id])
 }
