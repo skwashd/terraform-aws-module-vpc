@@ -81,5 +81,4 @@ locals {
   azs = length(var.azs) == 0 ? data.aws_availability_zones.available.names : var.azs
 
   shared_principals = toset(length(var.org_units) > 0 ? [for ou in var.org_units : ou.arn] : [data.aws_organizations_organization.this.arn])
-  org_paths         = toset(length(var.org_units) > 0 ? [for ou in var.org_units : ou.path] : [data.aws_organizations_organization.this.id])
 }

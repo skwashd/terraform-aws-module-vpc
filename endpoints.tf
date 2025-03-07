@@ -42,17 +42,20 @@ data "aws_iam_policy_document" "endpoint_gateway_dynamodb" {
       actions   = ["*"]
 
       condition {
-        test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
-        variable = length(var.org_units) > 0 ? "aws:ResourceOrgPaths" : "aws:ResourceOrgID"
-        values   = local.org_paths
+        test     = "StringEquals"
+        variable = "aws:ResourceOrgID"
+        values = [
+          data.aws_organizations_organization.this.id
+        ]
       }
 
       condition {
-        test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
-        variable = length(var.org_units) > 0 ? "aws:PrincipalOrgPaths" : "aws:PrincipalOrgID"
-        values   = local.org_paths
+        test     = "StringEquals"
+        variable = "aws:PrincipalOrgID"
+        values = [
+          data.aws_organizations_organization.this.id
+        ]
       }
-
       principals {
         type        = "*"
         identifiers = ["*"]
@@ -119,15 +122,19 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
       actions   = ["*"]
 
       condition {
-        test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
-        variable = length(var.org_units) > 0 ? "aws:ResourceOrgPaths" : "aws:ResourceOrgID"
-        values   = local.org_paths
+        test     = "StringEquals"
+        variable = "aws:ResourceOrgID"
+        values = [
+          data.aws_organizations_organization.this.id
+        ]
       }
 
       condition {
-        test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
-        variable = length(var.org_units) > 0 ? "aws:PrincipalOrgPaths" : "aws:PrincipalOrgID"
-        values   = local.org_paths
+        test     = "StringEquals"
+        variable = "aws:PrincipalOrgID"
+        values = [
+          data.aws_organizations_organization.this.id
+        ]
       }
 
       principals {
@@ -236,7 +243,7 @@ data "aws_iam_policy_document" "interface_endpoints" {
 
   statement {
     actions = [
-      "${split(".", each.key)[0]}:*",
+      "*"
     ]
 
     principals {
@@ -247,15 +254,19 @@ data "aws_iam_policy_document" "interface_endpoints" {
     resources = ["*"]
 
     condition {
-      test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
-      variable = length(var.org_units) > 0 ? "aws:ResourceOrgPaths" : "aws:ResourceOrgID"
-      values   = local.org_paths
+      test     = "StringEquals"
+      variable = "aws:ResourceOrgID"
+      values = [
+        data.aws_organizations_organization.this.id
+      ]
     }
 
     condition {
-      test     = length(var.org_units) > 0 ? "ForAnyValue:StringEquals" : "StringEquals"
-      variable = length(var.org_units) > 0 ? "aws:PrincipalOrgPaths" : "aws:PrincipalOrgID"
-      values   = local.org_paths
+      test     = "StringEquals"
+      variable = "aws:PrincipalOrgID"
+      values = [
+        data.aws_organizations_organization.this.id
+      ]
     }
   }
 }
