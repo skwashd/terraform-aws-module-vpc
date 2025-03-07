@@ -184,7 +184,7 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
 
   dynamic "statement" {
     # If we're using SSM, grant access to the SSM buckets
-    for_each = var.endpoints["ssm"] ? [0] : []
+    for_each = lookup(var.endpoints, "ssm", false) ? [0] : []
 
     content {
       sid    = "AccessSSMBuckets"
