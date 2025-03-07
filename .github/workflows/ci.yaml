@@ -16,6 +16,8 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3.1.2
+        with:
+          terraform_version: 1.11.1
 
       - name: Run fmt
         run: terraform fmt -diff -check -no-color -recursive
