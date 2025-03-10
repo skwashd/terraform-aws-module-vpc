@@ -21,6 +21,11 @@ output "ssm_subnets_public" {
   value       = aws_ssm_parameter.subnets_public.arn
 }
 
+output "ssm_vpc" {
+  description = "ARN of the SSM parameter containing the VPC ID"
+  value       = aws_ssm_parameter.vpc.arn
+}
+
 output "subnets" {
   description = "Subnets configured for the VPC"
   value = {
