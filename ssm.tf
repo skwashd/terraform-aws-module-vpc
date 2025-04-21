@@ -9,6 +9,15 @@ resource "aws_ssm_parameter" "endpoints" {
   tags = var.tags
 }
 
+resource "aws_ssm_parameter" "nat_gateway_ips" {
+  name        = "/${var.name}/network/nat_gateway_ips"
+  description = "List of IP addresses associated with the NAT Gateways"
+  type        = "String"
+  value       = jsonencode([for _, ngw in aws_eip.nat_gateway : ngw.public_ip])
+
+  tags = var.tags
+}
+
 
 resource "aws_ssm_parameter" "subnets_private" {
   name        = "/${var.name}/network/subnets_private"
