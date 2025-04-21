@@ -11,6 +11,11 @@ output "ssm_endpoints" {
   value       = aws_ssm_parameter.endpoints.arn
 }
 
+output "ssm_nat_gateway_ips" {
+  description = "ARN of the SSM parameter containing the NAT Gateway IPs"
+  value       = aws_ssm_parameter.nat_gateway_ips.arn
+}
+
 output "ssm_subnets_private" {
   description = "ARN of the SSM parameter containing the private subnets"
   value       = aws_ssm_parameter.subnets_private.arn
