@@ -1,6 +1,6 @@
 variable "azs" {
   description = "List of AWS Availability Zones to use for deploying resources. If empty all AZs in region used."
-  type        = list(any)
+  type        = list(string)
 
   default = []
 }
