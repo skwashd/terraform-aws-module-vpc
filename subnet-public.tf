@@ -11,10 +11,13 @@ resource "aws_subnet" "public" {
 
   availability_zone = each.value
 
-  tags = {
-    Name      = "${var.name}-public-${each.value}"
-    "Network" = "Public"
-  }
+  tags = merge(
+    var.tags,
+    {
+      Name      = "${var.name}-public-${each.value}"
+      "Network" = "Public"
+    }
+  )
 }
 
 resource "aws_internet_gateway" "this" {

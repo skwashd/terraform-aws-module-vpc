@@ -41,7 +41,7 @@ output "subnets" {
 
 output "vpc_arn" {
   description = "ARN of the VPC"
-  value       = aws_vpc.this.id
+  value       = aws_vpc.this.arn
 }
 
 output "vpc_id" {

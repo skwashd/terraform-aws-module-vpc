@@ -11,10 +11,13 @@ resource "aws_subnet" "private" {
 
   availability_zone = each.value
 
-  tags = {
-    "Name"    = "${var.name}-private-${each.value}"
-    "Network" = "Private"
-  }
+  tags = merge(
+    var.tags,
+    {
+      "Name"    = "${var.name}-private-${each.value}"
+      "Network" = "Private"
+    }
+  )
 }
 
 resource "aws_route_table" "private" {
@@ -27,10 +30,13 @@ resource "aws_route_table" "private" {
     nat_gateway_id = aws_nat_gateway.this[each.key].id
   }
 
-  tags = {
-    Name    = "${var.name}-private-${each.key}"
-    Network = "Private"
-  }
+  tags = merge(
+    var.tags,
+    {
+      Name    = "${var.name}-private-${each.key}"
+      Network = "Private"
+    }
+  )
 }
 
 resource "aws_route_table_association" "private_subnets" {
