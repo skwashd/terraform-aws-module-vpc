@@ -39,14 +39,10 @@ variable "name" {
   type        = string
 }
 
-variable "org_id" {
-  description = "ID of the AWS Organisation for this account."
-  type        = string
-
-  validation {
-    error_message = "Invalid Organisation ID."
-    condition     = substr(var.org_id, 0, 2) == "o-"
-  }
+variable "natgw_per_subnet" {
+  description = "Create a NAT gateway per private subnet. When false, all private subnets share a single NAT gateway. At least one NAT gateway is always provisioned."
+  type        = bool
+  default     = true
 }
 
 variable "org_units" {
