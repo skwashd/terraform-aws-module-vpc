@@ -6,7 +6,7 @@ variable "azs" {
 }
 
 variable "endpoints" {
-  description = "VPC PrivateLink endpoints to enable."
+  description = "VPC interface endpoints to enable. S3 and DynamoDB gateway endpoints are always provisioned (free). Keys are AWS service names (e.g. ecr.dkr, ssm). Setting s3 or dynamodb here also enables service-specific S3 policy statements."
   type        = map(bool)
 
   default = {}
