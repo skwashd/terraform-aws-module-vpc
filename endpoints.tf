@@ -7,95 +7,71 @@ locals {
       security_group_id = aws_security_group.interface_endpoint[service].id
     }
   }
-  vpc_endpoints_gateway = merge(
-    lookup(var.endpoints, "s3", false) ? { "s3" : { id = aws_vpc_endpoint.gateway_s3[0].id, prefix_list = aws_vpc_endpoint.gateway_s3[0].prefix_list_id } } : {},
-    lookup(var.endpoints, "dynamodb", false) ? { "dynamodb" : { id = aws_vpc_endpoint.gateway_dynamodb[0].id, prefix_list = aws_vpc_endpoint.gateway_dynamodb[0].prefix_list_id } } : {},
-  )
+  vpc_endpoints_gateway = {
+    s3       = { id = aws_vpc_endpoint.gateway_s3.id, prefix_list = aws_vpc_endpoint.gateway_s3.prefix_list_id }
+    dynamodb = { id = aws_vpc_endpoint.gateway_dynamodb.id, prefix_list = aws_vpc_endpoint.gateway_dynamodb.prefix_list_id }
+  }
 }
 
 resource "aws_vpc_endpoint" "gateway_dynamodb" {
-  count = lookup(var.endpoints, "dynamodb", false) ? 1 : 0
-
   vpc_id          = aws_vpc.this.id
-  policy          = data.aws_iam_policy_document.endpoint_gateway_dynamodb[0].json
-  service_name    = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
-  route_table_ids = aws_route_table.private[*].id
+  policy          = data.aws_iam_policy_document.endpoint_gateway_dynamodb.json
+  service_name    = "com.amazonaws.${data.aws_region.current.region}.dynamodb"
+  route_table_ids = [for table in aws_route_table.private : table.id]
 
   tags = merge(
     var.tags,
     {
-      "Name" = "${var.name}-dynamodb"
+      Name = "${var.name}-dynamodb"
     },
   )
 }
 
 data "aws_iam_policy_document" "endpoint_gateway_dynamodb" {
-  count = lookup(var.endpoints, "dynamodb", false) ? 1 : 0
+  statement {
+    sid       = "AllowOrgTables"
+    effect    = "Allow"
+    resources = ["*"]
+    actions = [
+      "dynamodb:BatchGetItem",
+      "dynamodb:BatchWriteItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:DescribeTable",
+      "dynamodb:GetItem",
+      "dynamodb:ListTables",
+      "dynamodb:PutItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:UpdateItem",
+    ]
 
-  dynamic "statement" {
-    # Using org config, so allow access to all tables in the org
-    for_each = var.org_id != "" ? [1] : []
-    content {
-      sid       = "AllowOrgTables"
-      effect    = "Allow"
-      resources = ["*"]
-      actions   = ["*"]
-
-      condition {
-        test     = "StringEquals"
-        variable = "aws:ResourceOrgID"
-        values = [
-          data.aws_organizations_organization.this.id
-        ]
-      }
-
-      condition {
-        test     = "StringEquals"
-        variable = "aws:PrincipalOrgID"
-        values = [
-          data.aws_organizations_organization.this.id
-        ]
-      }
-      principals {
-        type        = "*"
-        identifiers = ["*"]
-      }
-    }
-  }
-
-  dynamic "statement" {
-    # Using account config, so only allow access to all tables in the account
-    for_each = var.org_id == "" ? [1] : []
-    content {
-      sid    = "AllowAccountTables"
-      effect = "Allow"
-      resources = [
-        "arn:aws:dynamodb:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*",
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceOrgID"
+      values = [
+        data.aws_organizations_organization.this.id
       ]
-      actions = ["*"]
+    }
 
-      principals {
-        type        = "*"
-        identifiers = ["*"]
-      }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalOrgID"
+      values = [
+        data.aws_organizations_organization.this.id
+      ]
+    }
 
-      condition {
-        test     = "StringEquals"
-        variable = "aws:PrincipalAccount"
-        values = [
-          data.aws_caller_identity.current.account_id
-        ]
-      }
+    principals {
+      type        = "*"
+      identifiers = ["*"]
     }
   }
 }
 
 resource "aws_vpc_endpoint" "gateway_s3" {
-  count = lookup(var.endpoints, "s3", false) ? 1 : 0
-
   vpc_id       = aws_vpc.this.id
-  policy       = data.aws_iam_policy_document.endpoint_gateway_s3[0].json
-  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
+  policy       = data.aws_iam_policy_document.endpoint_gateway_s3.json
+  service_name = "com.amazonaws.${data.aws_region.current.region}.s3"
 
   route_table_ids = [
     for table in aws_route_table.private : table.id
@@ -104,67 +80,52 @@ resource "aws_vpc_endpoint" "gateway_s3" {
   tags = merge(
     var.tags,
     {
-      "Name" = "${var.name}-s3"
+      Name = "${var.name}-s3"
     },
   )
 }
 
 data "aws_iam_policy_document" "endpoint_gateway_s3" {
-  count = lookup(var.endpoints, "s3", false) ? 1 : 0
+  statement {
+    sid       = "AllowOrgBuckets"
+    effect    = "Allow"
+    resources = ["*"]
+    actions = [
+      "s3:AbortMultipartUpload",
+      "s3:CompleteMultipartUpload",
+      "s3:CreateMultipartUpload",
+      "s3:DeleteObject",
+      "s3:GetBucketLocation",
+      "s3:GetObject",
+      "s3:GetObjectTagging",
+      "s3:GetObjectVersion",
+      "s3:ListAllMyBuckets",
+      "s3:ListBucket",
+      "s3:ListObjectVersions",
+      "s3:PutObject",
+      "s3:PutObjectTagging",
+      "s3:UploadPart",
+    ]
 
-  dynamic "statement" {
-    # Using org config, so allow access to all buckets in the org
-    for_each = var.org_id != "" ? [1] : []
-    content {
-      sid       = "AllowOrgBuckets"
-      effect    = "Allow"
-      resources = ["*"]
-      actions   = ["*"]
-
-      condition {
-        test     = "StringEquals"
-        variable = "aws:ResourceOrgID"
-        values = [
-          data.aws_organizations_organization.this.id
-        ]
-      }
-
-      condition {
-        test     = "StringEquals"
-        variable = "aws:PrincipalOrgID"
-        values = [
-          data.aws_organizations_organization.this.id
-        ]
-      }
-
-      principals {
-        type        = "*"
-        identifiers = ["*"]
-      }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceOrgID"
+      values = [
+        data.aws_organizations_organization.this.id
+      ]
     }
-  }
 
-  dynamic "statement" {
-    # Using account config, so only allow access to all buckets in the account
-    for_each = var.org_id == "" ? [1] : []
-    content {
-      sid       = "AllowAccountBuckets"
-      effect    = "Allow"
-      resources = ["*"]
-      actions   = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "aws:PrincipalOrgID"
+      values = [
+        data.aws_organizations_organization.this.id
+      ]
+    }
 
-      condition {
-        test     = "StringEquals"
-        variable = "s3:ResourceAccount"
-        values = [
-          data.aws_caller_identity.current.account_id
-        ]
-      }
-
-      principals {
-        type        = "*"
-        identifiers = ["*"]
-      }
+    principals {
+      type        = "*"
+      identifiers = ["*"]
     }
   }
 
@@ -177,7 +138,7 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
       effect = "Allow"
 
       resources = [
-        "arn:aws:s3:::prod-${data.aws_region.current.name}-starport-layer-bucket/*",
+        "arn:aws:s3:::prod-${data.aws_region.current.region}-starport-layer-bucket/*",
       ]
 
       actions = ["s3:GetObject"]
@@ -198,14 +159,14 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
       effect = "Allow"
 
       resources = [
-        "arn:aws:s3:::amazon-ssm-packages-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::amazon-ssm-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::aws-patchmanager-macos-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::aws-ssm-document-attachments-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::aws-ssm-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::aws-windows-downloads-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::patch-baseline-snapshot-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::${data.aws_region.current.name}-birdwatcher-prod/*",
+        "arn:aws:s3:::amazon-ssm-packages-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::amazon-ssm-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::aws-patchmanager-macos-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::aws-ssm-document-attachments-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::aws-ssm-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::aws-windows-downloads-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::patch-baseline-snapshot-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::${data.aws_region.current.region}-birdwatcher-prod/*",
       ]
 
       actions = ["s3:GetObject"]
@@ -224,7 +185,7 @@ resource "aws_vpc_endpoint" "interface" {
   vpc_id              = aws_vpc.this.id
   subnet_ids          = [for s in aws_subnet.private : s.id]
   policy              = each.key == "email-smtp" ? null : data.aws_iam_policy_document.interface_endpoints[each.value].json
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.${each.value}"
+  service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.value}"
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [aws_security_group.interface_endpoint[each.key].id]
   private_dns_enabled = true
@@ -232,7 +193,7 @@ resource "aws_vpc_endpoint" "interface" {
   tags = merge(
     var.tags,
     {
-      "Name" = "${var.name}-${replace(each.key, ".", "-")}"
+      Name = "${var.name}-${replace(each.key, ".", "-")}"
     },
   )
 }
@@ -242,16 +203,13 @@ data "aws_iam_policy_document" "interface_endpoints" {
   for_each = local.interface_endpoints
 
   statement {
-    actions = [
-      "*"
-    ]
+    actions   = ["*"]
+    resources = ["*"]
 
     principals {
       type        = "*" # Allow all principals, not just IAM principals
       identifiers = ["*"]
     }
-
-    resources = ["*"]
 
     condition {
       test     = "StringEquals"
@@ -283,7 +241,7 @@ resource "aws_security_group" "interface_endpoint" {
   tags = merge(
     var.tags,
     {
-      "Name" = "vpce-${var.name}-${replace(each.value, ".", "-")}"
+      Name = "vpce-${var.name}-${replace(each.value, ".", "-")}"
     },
   )
 }

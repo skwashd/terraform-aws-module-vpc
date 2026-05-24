@@ -6,7 +6,7 @@ variable "azs" {
 }
 
 variable "endpoints" {
-  description = "VPC PrivateLink endpoints to enable."
+  description = "VPC interface endpoints to enable. S3 and DynamoDB gateway endpoints are always provisioned (free). Keys are AWS service names (e.g. ecr.dkr, ssm). Setting s3 or dynamodb here also enables service-specific S3 policy statements."
   type        = map(bool)
 
   default = {}
@@ -39,14 +39,10 @@ variable "name" {
   type        = string
 }
 
-variable "org_id" {
-  description = "ID of the AWS Organisation for this account."
-  type        = string
-
-  validation {
-    error_message = "Invalid Organisation ID."
-    condition     = substr(var.org_id, 0, 2) == "o-"
-  }
+variable "natgw_per_subnet" {
+  description = "Create a NAT gateway per private subnet. When false, all private subnets share a single NAT gateway. At least one NAT gateway is always provisioned."
+  type        = bool
+  default     = true
 }
 
 variable "org_units" {

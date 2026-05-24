@@ -1,6 +1,8 @@
 locals {
   private_subnet_base   = cidrsubnet(var.ipv4_cidr_block, 1, 0)
   private_subnets_cidrs = { for az in local.azs : az => cidrsubnet(local.private_subnet_base, 3, index(local.azs, az)) }
+  natgw_azs             = var.natgw_per_subnet ? toset(local.azs) : toset([local.azs[0]])
+  natgw_lookup          = { for az in local.azs : az => var.natgw_per_subnet ? az : local.azs[0] }
 }
 
 resource "aws_subnet" "private" {
@@ -9,13 +11,14 @@ resource "aws_subnet" "private" {
   vpc_id     = aws_vpc.this.id
   cidr_block = local.private_subnets_cidrs[each.value]
 
-  availability_zone = each.value
+  availability_zone       = each.value
+  map_public_ip_on_launch = false
 
   tags = merge(
     var.tags,
     {
-      "Name"    = "${var.name}-private-${each.value}"
-      "Network" = "Private"
+      Name    = "${var.name}-private-${each.value}"
+      Network = "Private"
     }
   )
 }
@@ -24,11 +27,6 @@ resource "aws_route_table" "private" {
   for_each = aws_subnet.private
 
   vpc_id = aws_vpc.this.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this[each.key].id
-  }
 
   tags = merge(
     var.tags,
@@ -39,6 +37,14 @@ resource "aws_route_table" "private" {
   )
 }
 
+resource "aws_route" "private_nat_gateway" {
+  for_each = aws_route_table.private
+
+  route_table_id         = each.value.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.this[local.natgw_lookup[each.key]].id
+}
+
 resource "aws_route_table_association" "private_subnets" {
   for_each = aws_subnet.private
 
@@ -47,16 +53,21 @@ resource "aws_route_table_association" "private_subnets" {
 }
 
 resource "aws_eip" "nat_gateway" {
-  for_each = aws_subnet.private
+  for_each = local.natgw_azs
 
   domain = "vpc"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tags = merge(
     var.tags,
     {
-      Name    = "${var.name}-natgw-${each.key}",
+      Name    = "${var.name}-natgw-${each.key}"
       Network = "Private"
-  })
+    },
+  )
 }
 
 resource "aws_nat_gateway" "this" {
@@ -68,7 +79,8 @@ resource "aws_nat_gateway" "this" {
   tags = merge(
     var.tags,
     {
-      Name    = "${var.name}-${each.key}",
+      Name    = "${var.name}-${each.key}"
       Network = "Private"
-  })
+    },
+  )
 }
