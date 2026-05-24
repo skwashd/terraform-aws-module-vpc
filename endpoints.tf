@@ -16,7 +16,7 @@ locals {
 resource "aws_vpc_endpoint" "gateway_dynamodb" {
   vpc_id          = aws_vpc.this.id
   policy          = data.aws_iam_policy_document.endpoint_gateway_dynamodb.json
-  service_name    = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
+  service_name    = "com.amazonaws.${data.aws_region.current.region}.dynamodb"
   route_table_ids = [for table in aws_route_table.private : table.id]
 
   tags = merge(
@@ -71,7 +71,7 @@ data "aws_iam_policy_document" "endpoint_gateway_dynamodb" {
 resource "aws_vpc_endpoint" "gateway_s3" {
   vpc_id       = aws_vpc.this.id
   policy       = data.aws_iam_policy_document.endpoint_gateway_s3.json
-  service_name = "com.amazonaws.${data.aws_region.current.name}.s3"
+  service_name = "com.amazonaws.${data.aws_region.current.region}.s3"
 
   route_table_ids = [
     for table in aws_route_table.private : table.id
@@ -138,7 +138,7 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
       effect = "Allow"
 
       resources = [
-        "arn:aws:s3:::prod-${data.aws_region.current.name}-starport-layer-bucket/*",
+        "arn:aws:s3:::prod-${data.aws_region.current.region}-starport-layer-bucket/*",
       ]
 
       actions = ["s3:GetObject"]
@@ -159,14 +159,14 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
       effect = "Allow"
 
       resources = [
-        "arn:aws:s3:::amazon-ssm-packages-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::amazon-ssm-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::aws-patchmanager-macos-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::aws-ssm-document-attachments-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::aws-ssm-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::aws-windows-downloads-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::patch-baseline-snapshot-${data.aws_region.current.name}/*",
-        "arn:aws:s3:::${data.aws_region.current.name}-birdwatcher-prod/*",
+        "arn:aws:s3:::amazon-ssm-packages-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::amazon-ssm-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::aws-patchmanager-macos-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::aws-ssm-document-attachments-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::aws-ssm-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::aws-windows-downloads-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::patch-baseline-snapshot-${data.aws_region.current.region}/*",
+        "arn:aws:s3:::${data.aws_region.current.region}-birdwatcher-prod/*",
       ]
 
       actions = ["s3:GetObject"]
@@ -185,7 +185,7 @@ resource "aws_vpc_endpoint" "interface" {
   vpc_id              = aws_vpc.this.id
   subnet_ids          = [for s in aws_subnet.private : s.id]
   policy              = each.key == "email-smtp" ? null : data.aws_iam_policy_document.interface_endpoints[each.value].json
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.${each.value}"
+  service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.value}"
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [aws_security_group.interface_endpoint[each.key].id]
   private_dns_enabled = true

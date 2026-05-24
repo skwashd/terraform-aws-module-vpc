@@ -102,15 +102,15 @@ At least one tag is required and the `Environment` key must be present.
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.10.0, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0, < 7.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.0, < 7.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.0, < 7.0 |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.0, < 7.0 |
 
 ## Modules
 
@@ -119,7 +119,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_default_route_table.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_route_table) | resource |
 | [aws_default_security_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group) | resource |
 | [aws_eip.nat_gateway](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
@@ -166,7 +166,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_azs"></a> [azs](#input\_azs) | List of AWS Availability Zones to use for deploying resources. If empty all AZs in region used. | `list(string)` | `[]` | no |
 | <a name="input_endpoints"></a> [endpoints](#input\_endpoints) | VPC interface endpoints to enable. S3 and DynamoDB gateway endpoints are always provisioned (free). Keys are AWS service names (e.g. ecr.dkr, ssm). Setting s3 or dynamodb here also enables service-specific S3 policy statements. | `map(bool)` | `{}` | no |
 | <a name="input_ipv4_cidr_block"></a> [ipv4\_cidr\_block](#input\_ipv4\_cidr\_block) | CIDR block for the VPC. | `string` | `"10.128.0.0/16"` | no |
@@ -180,7 +180,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_azs"></a> [azs](#output\_azs) | List of availability zones used by this VPC |
 | <a name="output_endpoint_security_groups"></a> [endpoint\_security\_groups](#output\_endpoint\_security\_groups) | Mapping of endpoints to security group IDs |
 | <a name="output_internet_gateway_id"></a> [internet\_gateway\_id](#output\_internet\_gateway\_id) | ID of the Internet Gateway |
