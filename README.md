@@ -137,6 +137,31 @@ The module writes these SSM parameters under `/{name}/network/`:
 The `tags` variable must contain the `Environment` key. The module applies
 these tags to all resources that support tags.
 
+## Upgrade Notes
+
+### Security Group Rules for Interface Endpoints
+
+Older versions of the module use one `aws_security_group_rule` for each
+interface endpoint. This version uses one `aws_vpc_security_group_ingress_rule`
+for each interface endpoint and private subnet. Terraform cannot move the old
+rules to the new resource type.
+
+CAUTION: Do steps 1 to 3 without a pause. Between step 1 and step 3, the
+private subnets cannot connect to the interface endpoints.
+
+1. Before you change the module version, remove the old rules. Replace
+   `module.vpc` with the address of your module.
+
+   ```sh
+   terraform destroy -target='module.vpc.aws_security_group_rule.endpoint_ingress'
+   ```
+
+2. Change the module version.
+3. Run `terraform apply`.
+
+If you do not do step 1, the first `terraform apply` can fail with
+`InvalidPermission.Duplicate`. If this occurs, run `terraform apply` again.
+
 # Generated Documentation
 
 <!-- BEGIN_TF_DOCS -->
@@ -184,7 +209,6 @@ No modules.
 | [aws_route_table_association.private_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
 | [aws_route_table_association.public_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
 | [aws_security_group.interface_endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [aws_security_group_rule.endpoint_ingress](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_ssm_parameter.endpoints](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.nat_gateway_ips](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.subnets_private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
@@ -196,6 +220,7 @@ No modules.
 | [aws_vpc_endpoint.gateway_dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
 | [aws_vpc_endpoint.gateway_s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
 | [aws_vpc_endpoint.interface](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+| [aws_vpc_security_group_ingress_rule.interface_endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_security_group_ingress_rule) | resource |
 | [aws_availability_zones.available](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/availability_zones) | data source |
 | [aws_iam_policy_document.endpoint_gateway_dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.endpoint_gateway_s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |

@@ -1,6 +1,13 @@
 locals {
   interface_endpoints = toset([for k, v in var.endpoints : k if k != "s3" && k != "dynamodb" && v == true])
 
+  interface_endpoint_ingress = {
+    for pair in setproduct(local.interface_endpoints, local.azs) : "${pair[0]}/${pair[1]}" => {
+      endpoint = pair[0]
+      az       = pair[1]
+    }
+  }
+
   vpc_endpoints_interface = {
     for service, endpoint in aws_vpc_endpoint.interface : service => {
       id                = endpoint.id,
@@ -246,16 +253,21 @@ resource "aws_security_group" "interface_endpoint" {
   )
 }
 
-resource "aws_security_group_rule" "endpoint_ingress" {
-  for_each = aws_vpc_endpoint.interface
+resource "aws_vpc_security_group_ingress_rule" "interface_endpoint" {
+  for_each = local.interface_endpoint_ingress
 
-  description = "Connect to ${each.key} endpoint."
+  security_group_id = aws_security_group.interface_endpoint[each.value.endpoint].id
+  description       = "Connect to ${each.value.endpoint} endpoint from ${each.value.az}"
 
-  security_group_id = aws_security_group.interface_endpoint[each.key].id
+  cidr_ipv4   = local.private_subnets_cidrs[each.value.az]
+  from_port   = each.value.endpoint == "email-smtp" ? 587 : 443
+  ip_protocol = "tcp"
+  to_port     = each.value.endpoint == "email-smtp" ? 587 : 443
 
-  from_port   = each.key == "email-smtp" ? 587 : 443
-  protocol    = "tcp"
-  cidr_blocks = [for s in aws_subnet.private : s.cidr_block]
-  to_port     = each.key == "email-smtp" ? 587 : 443
-  type        = "ingress"
+  tags = merge(
+    var.tags,
+    {
+      Name = "vpce-${var.name}-${replace(each.value.endpoint, ".", "-")}-${each.value.az}"
+    },
+  )
 }
