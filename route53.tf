@@ -1,6 +1,12 @@
 resource "aws_route53_resolver_query_log_config" "this" {
-  name            = var.name
-  destination_arn = "${data.aws_s3_bucket.logging_bucket_dns.arn}/route53-resolver/${var.name}"
+  name = var.name
+  destination_arn = provider::aws::arn_build(
+    data.aws_partition.current.partition,
+    "s3",
+    "",
+    "",
+    "${var.logging_bucket_dns}/route53resolver"
+  )
 
   tags = var.tags
 }

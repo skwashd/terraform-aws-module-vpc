@@ -193,7 +193,7 @@ resource "aws_vpc_endpoint" "interface" {
   tags = merge(
     var.tags,
     {
-      "Name" = "${var.name}-${replace(each.key, ".", "-")}"
+      Name = "${var.name}-${replace(each.key, ".", "-")}"
     },
   )
 }
@@ -203,16 +203,13 @@ data "aws_iam_policy_document" "interface_endpoints" {
   for_each = local.interface_endpoints
 
   statement {
-    actions = [
-      "*"
-    ]
+    actions   = ["*"]
+    resources = ["*"]
 
     principals {
       type        = "*" # Allow all principals, not just IAM principals
       identifiers = ["*"]
     }
-
-    resources = ["*"]
 
     condition {
       test     = "StringEquals"
@@ -244,7 +241,7 @@ resource "aws_security_group" "interface_endpoint" {
   tags = merge(
     var.tags,
     {
-      "Name" = "vpce-${var.name}-${replace(each.value, ".", "-")}"
+      Name = "vpce-${var.name}-${replace(each.value, ".", "-")}"
     },
   )
 }

@@ -1,9 +1,39 @@
+output "azs" {
+  description = "List of availability zones used by this VPC"
+  value       = local.azs
+}
+
 output "endpoint_security_groups" {
   description = "Mapping of endpoints to security group IDs"
   value = {
     gateway   = local.vpc_endpoints_gateway
     interface = local.vpc_endpoints_interface
   }
+}
+
+output "internet_gateway_id" {
+  description = "ID of the Internet Gateway"
+  value       = aws_internet_gateway.this.id
+}
+
+output "nat_gateway_ids" {
+  description = "Map of AZ to NAT Gateway ID"
+  value       = { for az, ngw in aws_nat_gateway.this : az => ngw.id }
+}
+
+output "nat_gateway_ips" {
+  description = "Public IPs of the NAT gateways"
+  value       = [for eip in aws_eip.nat_gateway : eip.public_ip]
+}
+
+output "private_route_table_ids" {
+  description = "Map of AZ to private route table ID"
+  value       = { for az, rt in aws_route_table.private : az => rt.id }
+}
+
+output "public_route_table_id" {
+  description = "ID of the public route table"
+  value       = aws_default_route_table.this.id
 }
 
 output "ssm_endpoints" {
@@ -42,6 +72,11 @@ output "subnets" {
 output "vpc_arn" {
   description = "ARN of the VPC"
   value       = aws_vpc.this.arn
+}
+
+output "vpc_cidr_block" {
+  description = "The CIDR block of the VPC"
+  value       = aws_vpc.this.cidr_block
 }
 
 output "vpc_id" {
