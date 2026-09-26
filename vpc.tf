@@ -1,3 +1,9 @@
+locals {
+  azs = length(var.azs) == 0 ? data.aws_availability_zones.available.names : var.azs
+
+  shared_principals = toset(length(var.org_units) > 0 ? [for ou in var.org_units : ou.arn] : [data.aws_organizations_organization.this.arn])
+}
+
 resource "aws_vpc" "this" {
   cidr_block = var.ipv4_cidr_block
 
@@ -36,7 +42,12 @@ resource "aws_flow_log" "this" {
   traffic_type = "ALL"
   vpc_id       = aws_vpc.this.id
 
-  tags = var.tags
+  tags = merge(
+    var.tags,
+    {
+      Name = var.name
+    },
+  )
 }
 
 resource "aws_ram_resource_share" "vpc" {
@@ -44,10 +55,11 @@ resource "aws_ram_resource_share" "vpc" {
 
   allow_external_principals = false
 
-  tags = merge({
-    Name = "vpc-${var.name}"
+  tags = merge(
+    var.tags,
+    {
+      Name = "vpc-${var.name}"
     },
-    var.tags
   )
 }
 

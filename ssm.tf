@@ -1,6 +1,7 @@
 resource "aws_ssm_parameter" "endpoints" {
-  name = "/${var.name}/network/vpc_endpoints"
-  type = "String"
+  name        = "/${var.name}/network/vpc_endpoints"
+  description = "Gateway and interface VPC endpoints: IDs, prefix lists and security group IDs"
+  type        = "String"
   value = jsonencode({
     gateway   = local.vpc_endpoints_gateway
     interface = local.vpc_endpoints_interface
@@ -17,7 +18,6 @@ resource "aws_ssm_parameter" "nat_gateway_ips" {
 
   tags = var.tags
 }
-
 
 resource "aws_ssm_parameter" "subnets_private" {
   name        = "/${var.name}/network/subnets_private"
@@ -38,9 +38,10 @@ resource "aws_ssm_parameter" "subnets_public" {
 }
 
 resource "aws_ssm_parameter" "vpc" {
-  name  = "/${var.name}/network/vpc"
-  type  = "String"
-  value = jsonencode(aws_vpc.this.id)
+  name        = "/${var.name}/network/vpc"
+  description = "ID of the VPC"
+  type        = "String"
+  value       = jsonencode(aws_vpc.this.id)
 
   tags = var.tags
 }

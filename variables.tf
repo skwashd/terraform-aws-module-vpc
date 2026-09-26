@@ -1,5 +1,5 @@
 variable "azs" {
-  description = "List of AWS Availability Zones to use for deploying resources. If empty all AZs in region used."
+  description = "Availability Zones (AZs) to use. If the list is empty, the module uses all available AZs in the region."
   type        = list(string)
 
   default = []
@@ -25,12 +25,12 @@ variable "ipv4_cidr_block" {
 }
 
 variable "logging_bucket_dns" {
-  description = "Name of the S3 bucket to use for logging DNS requests."
+  description = "Name of the S3 bucket for Route 53 DNS query logs."
   type        = string
 }
 
 variable "logging_bucket_flows" {
-  description = "Name of the S3 bucket to use for logging VPC flows."
+  description = "Name of the S3 bucket for VPC flow logs."
   type        = string
 }
 
@@ -47,7 +47,7 @@ variable "natgw_per_subnet" {
 }
 
 variable "org_units" {
-  description = "Map of of OU OrgPaths -> ARNs that can access the VPC. If empty access is limited to the Organization."
+  description = "Organizational units (OUs) to share the subnets with. Each value contains the ARN and the path of an OU. If the map is empty, the module shares the subnets with the full organization."
   type = map(
     object({
       arn  = string
@@ -58,7 +58,7 @@ variable "org_units" {
 }
 
 variable "tags" {
-  description = "Tags to apply to add resources provisioned."
+  description = "Tags to apply to all resources that support tags. The map must contain the Environment key."
   type        = map(string)
 
   default = {}
@@ -72,10 +72,4 @@ variable "tags" {
     error_message = "Environment tag must be set."
     condition     = contains(keys(var.tags), "Environment")
   }
-}
-
-locals {
-  azs = length(var.azs) == 0 ? data.aws_availability_zones.available.names : var.azs
-
-  shared_principals = toset(length(var.org_units) > 0 ? [for ou in var.org_units : ou.arn] : [data.aws_organizations_organization.this.arn])
 }

@@ -4,7 +4,7 @@ output "azs" {
 }
 
 output "endpoint_security_groups" {
-  description = "Mapping of endpoints to security group IDs"
+  description = "Gateway and interface VPC endpoints: IDs, prefix lists and security group IDs"
   value = {
     gateway   = local.vpc_endpoints_gateway
     interface = local.vpc_endpoints_interface
@@ -62,7 +62,7 @@ output "ssm_vpc" {
 }
 
 output "subnets" {
-  description = "Subnets configured for the VPC"
+  description = "Private and public subnets: map of AZ to subnet ID and ARN"
   value = {
     private = { for az, subnet in aws_subnet.private : az => { id = subnet.id, arn = subnet.arn } }
     public  = { for az, subnet in aws_subnet.public : az => { id = subnet.id, arn = subnet.arn } }

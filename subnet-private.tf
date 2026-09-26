@@ -19,7 +19,7 @@ resource "aws_subnet" "private" {
     {
       Name    = "${var.name}-private-${each.value}"
       Network = "Private"
-    }
+    },
   )
 }
 
@@ -33,7 +33,7 @@ resource "aws_route_table" "private" {
     {
       Name    = "${var.name}-private-${each.key}"
       Network = "Private"
-    }
+    },
   )
 }
 

@@ -208,22 +208,22 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_azs"></a> [azs](#input\_azs) | List of AWS Availability Zones to use for deploying resources. If empty all AZs in region used. | `list(string)` | `[]` | no |
+| <a name="input_azs"></a> [azs](#input\_azs) | Availability Zones (AZs) to use. If the list is empty, the module uses all available AZs in the region. | `list(string)` | `[]` | no |
 | <a name="input_endpoints"></a> [endpoints](#input\_endpoints) | Interface VPC endpoints to create. Each key is an AWS service name, for example ecr.dkr or ssm. The module always creates the S3 and DynamoDB gateway endpoints, so it ignores the s3 and dynamodb keys. If ecr.dkr or ssm is true, the S3 gateway endpoint policy also gives access to the AWS buckets of that service. | `map(bool)` | `{}` | no |
 | <a name="input_ipv4_cidr_block"></a> [ipv4\_cidr\_block](#input\_ipv4\_cidr\_block) | CIDR block for the VPC. | `string` | `"10.128.0.0/16"` | no |
-| <a name="input_logging_bucket_dns"></a> [logging\_bucket\_dns](#input\_logging\_bucket\_dns) | Name of the S3 bucket to use for logging DNS requests. | `string` | n/a | yes |
-| <a name="input_logging_bucket_flows"></a> [logging\_bucket\_flows](#input\_logging\_bucket\_flows) | Name of the S3 bucket to use for logging VPC flows. | `string` | n/a | yes |
+| <a name="input_logging_bucket_dns"></a> [logging\_bucket\_dns](#input\_logging\_bucket\_dns) | Name of the S3 bucket for Route 53 DNS query logs. | `string` | n/a | yes |
+| <a name="input_logging_bucket_flows"></a> [logging\_bucket\_flows](#input\_logging\_bucket\_flows) | Name of the S3 bucket for VPC flow logs. | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | The name of the VPC. | `string` | n/a | yes |
 | <a name="input_natgw_per_subnet"></a> [natgw\_per\_subnet](#input\_natgw\_per\_subnet) | If true, the module creates one NAT gateway in each AZ. If false, the module creates one NAT gateway in the first AZ, and all private subnets use it. | `bool` | `true` | no |
-| <a name="input_org_units"></a> [org\_units](#input\_org\_units) | Map of of OU OrgPaths -> ARNs that can access the VPC. If empty access is limited to the Organization. | <pre>map(<br/>    object({<br/>      arn  = string<br/>      path = string<br/>    })<br/>  )</pre> | `{}` | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to add resources provisioned. | `map(string)` | `{}` | no |
+| <a name="input_org_units"></a> [org\_units](#input\_org\_units) | Organizational units (OUs) to share the subnets with. Each value contains the ARN and the path of an OU. If the map is empty, the module shares the subnets with the full organization. | <pre>map(<br/>    object({<br/>      arn  = string<br/>      path = string<br/>    })<br/>  )</pre> | `{}` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources that support tags. The map must contain the Environment key. | `map(string)` | `{}` | no |
 
 ## Outputs
 
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_azs"></a> [azs](#output\_azs) | List of availability zones used by this VPC |
-| <a name="output_endpoint_security_groups"></a> [endpoint\_security\_groups](#output\_endpoint\_security\_groups) | Mapping of endpoints to security group IDs |
+| <a name="output_endpoint_security_groups"></a> [endpoint\_security\_groups](#output\_endpoint\_security\_groups) | Gateway and interface VPC endpoints: IDs, prefix lists and security group IDs |
 | <a name="output_internet_gateway_id"></a> [internet\_gateway\_id](#output\_internet\_gateway\_id) | ID of the Internet Gateway |
 | <a name="output_nat_gateway_ids"></a> [nat\_gateway\_ids](#output\_nat\_gateway\_ids) | Map of AZ to NAT Gateway ID |
 | <a name="output_nat_gateway_ips"></a> [nat\_gateway\_ips](#output\_nat\_gateway\_ips) | Public IPs of the NAT gateways |
@@ -234,7 +234,7 @@ No modules.
 | <a name="output_ssm_subnets_private"></a> [ssm\_subnets\_private](#output\_ssm\_subnets\_private) | ARN of the SSM parameter containing the private subnets |
 | <a name="output_ssm_subnets_public"></a> [ssm\_subnets\_public](#output\_ssm\_subnets\_public) | ARN of the SSM parameter containing the public subnets |
 | <a name="output_ssm_vpc"></a> [ssm\_vpc](#output\_ssm\_vpc) | ARN of the SSM parameter containing the VPC ID |
-| <a name="output_subnets"></a> [subnets](#output\_subnets) | Subnets configured for the VPC |
+| <a name="output_subnets"></a> [subnets](#output\_subnets) | Private and public subnets: map of AZ to subnet ID and ARN |
 | <a name="output_vpc_arn"></a> [vpc\_arn](#output\_vpc\_arn) | ARN of the VPC |
 | <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | The CIDR block of the VPC |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | ID of the VPC |

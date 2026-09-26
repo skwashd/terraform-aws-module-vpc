@@ -130,18 +130,18 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
   }
 
   dynamic "statement" {
-    # If we're using docker, grant access to the ECR bucket
+    # ECR serves image layers from an AWS owned bucket outside the organization.
     for_each = lookup(var.endpoints, "ecr.dkr", false) ? [0] : []
 
     content {
-      sid    = "AccessECRBuckets"
-      effect = "Allow"
+      sid = "AccessECRBuckets"
 
+      actions = [
+        "s3:GetObject",
+      ]
       resources = [
         "arn:aws:s3:::prod-${data.aws_region.current.region}-starport-layer-bucket/*",
       ]
-
-      actions = ["s3:GetObject"]
 
       principals {
         type        = "*"
@@ -151,13 +151,15 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
   }
 
   dynamic "statement" {
-    # If we're using SSM, grant access to the SSM buckets
+    # SSM agents download packages and documents from AWS owned buckets outside the organization.
     for_each = lookup(var.endpoints, "ssm", false) ? [0] : []
 
     content {
-      sid    = "AccessSSMBuckets"
-      effect = "Allow"
+      sid = "AccessSSMBuckets"
 
+      actions = [
+        "s3:GetObject",
+      ]
       resources = [
         "arn:aws:s3:::amazon-ssm-packages-${data.aws_region.current.region}/*",
         "arn:aws:s3:::amazon-ssm-${data.aws_region.current.region}/*",
@@ -168,8 +170,6 @@ data "aws_iam_policy_document" "endpoint_gateway_s3" {
         "arn:aws:s3:::patch-baseline-snapshot-${data.aws_region.current.region}/*",
         "arn:aws:s3:::${data.aws_region.current.region}-birdwatcher-prod/*",
       ]
-
-      actions = ["s3:GetObject"]
 
       principals {
         type        = "*"
@@ -215,7 +215,7 @@ data "aws_iam_policy_document" "interface_endpoints" {
       test     = "StringEquals"
       variable = "aws:ResourceOrgID"
       values = [
-        data.aws_organizations_organization.this.id
+        data.aws_organizations_organization.this.id,
       ]
     }
 
@@ -223,7 +223,7 @@ data "aws_iam_policy_document" "interface_endpoints" {
       test     = "StringEquals"
       variable = "aws:PrincipalOrgID"
       values = [
-        data.aws_organizations_organization.this.id
+        data.aws_organizations_organization.this.id,
       ]
     }
   }

@@ -17,7 +17,7 @@ resource "aws_subnet" "public" {
     {
       Name    = "${var.name}-public-${each.value}"
       Network = "Public"
-    }
+    },
   )
 }
 
