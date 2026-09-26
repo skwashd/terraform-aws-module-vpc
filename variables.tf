@@ -6,7 +6,7 @@ variable "azs" {
 }
 
 variable "endpoints" {
-  description = "VPC PrivateLink endpoints to enable."
+  description = "Interface VPC endpoints to create. Each key is an AWS service name, for example ecr.dkr or ssm. The module always creates the S3 and DynamoDB gateway endpoints, so it ignores the s3 and dynamodb keys. If ecr.dkr or ssm is true, the S3 gateway endpoint policy also gives access to the AWS buckets of that service."
   type        = map(bool)
 
   default = {}
