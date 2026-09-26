@@ -38,3 +38,6 @@ override.tf.json
 terraform.rc
 
 # End of https://www.toptal.com/developers/gitignore/api/terraform
+
+# Locks are ignored for modules
+.terraform.lock.hcl
