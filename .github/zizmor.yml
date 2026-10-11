@@ -1,0 +1,6 @@
+# zizmor configuration: https://docs.zizmor.sh/configuration/
+rules:
+  dependabot-cooldown:
+    config:
+      # Keep in sync with cooldown.default-days in .github/dependabot.yml.
+      days: 3

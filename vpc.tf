@@ -1,23 +1,53 @@
+locals {
+  azs = length(var.azs) == 0 ? data.aws_availability_zones.available.names : var.azs
+
+  shared_principals = toset(length(var.org_units) > 0 ? [for ou in var.org_units : ou.arn] : [data.aws_organizations_organization.this.arn])
+}
+
 resource "aws_vpc" "this" {
   cidr_block = var.ipv4_cidr_block
 
+  enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = merge(
     var.tags,
     {
-      "Name" = var.name
+      Name = var.name
+    },
+  )
+}
+
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = merge(
+    var.tags,
+    {
+      Name = "${var.name}-default-DO-NOT-USE"
     },
   )
 }
 
 resource "aws_flow_log" "this" {
-  log_destination      = "${data.aws_s3_bucket.logging_bucket_flows.arn}/vpc-flow-logs/${var.name}"
   log_destination_type = "s3"
-  traffic_type         = "ALL"
-  vpc_id               = aws_vpc.this.id
+  log_destination = provider::aws::arn_build(
+    data.aws_partition.current.partition,
+    "s3",
+    "",
+    "",
+    "${var.logging_bucket_flows}/vpc"
+  )
 
-  tags = var.tags
+  traffic_type = "ALL"
+  vpc_id       = aws_vpc.this.id
+
+  tags = merge(
+    var.tags,
+    {
+      Name = var.name
+    },
+  )
 }
 
 resource "aws_ram_resource_share" "vpc" {
@@ -25,10 +55,11 @@ resource "aws_ram_resource_share" "vpc" {
 
   allow_external_principals = false
 
-  tags = merge({
-    Name = "vpc-${var.name}"
+  tags = merge(
+    var.tags,
+    {
+      Name = "vpc-${var.name}"
     },
-    var.tags
   )
 }
 

@@ -1,12 +1,12 @@
 variable "azs" {
-  description = "List of AWS Availability Zones to use for deploying resources. If empty all AZs in region used."
+  description = "Availability Zones (AZs) to use. If the list is empty, the module uses all available AZs in the region."
   type        = list(string)
 
   default = []
 }
 
 variable "endpoints" {
-  description = "VPC PrivateLink endpoints to enable."
+  description = "Interface VPC endpoints to create. Each key is an AWS service name, for example ecr.dkr or ssm. The module always creates the S3 and DynamoDB gateway endpoints, so it ignores the s3 and dynamodb keys. If ecr.dkr or ssm is true, the S3 gateway endpoint policy also gives access to the AWS buckets of that service."
   type        = map(bool)
 
   default = {}
@@ -25,12 +25,12 @@ variable "ipv4_cidr_block" {
 }
 
 variable "logging_bucket_dns" {
-  description = "Name of the S3 bucket to use for logging DNS requests."
+  description = "Name of the S3 bucket for Route 53 DNS query logs."
   type        = string
 }
 
 variable "logging_bucket_flows" {
-  description = "Name of the S3 bucket to use for logging VPC flows."
+  description = "Name of the S3 bucket for VPC flow logs."
   type        = string
 }
 
@@ -39,18 +39,15 @@ variable "name" {
   type        = string
 }
 
-variable "org_id" {
-  description = "ID of the AWS Organisation for this account."
-  type        = string
+variable "natgw_per_subnet" {
+  description = "If true, the module creates one NAT gateway in each AZ. If false, the module creates one NAT gateway in the first AZ, and all private subnets use it."
+  type        = bool
 
-  validation {
-    error_message = "Invalid Organisation ID."
-    condition     = substr(var.org_id, 0, 2) == "o-"
-  }
+  default = true
 }
 
 variable "org_units" {
-  description = "Map of of OU OrgPaths -> ARNs that can access the VPC. If empty access is limited to the Organization."
+  description = "Organizational units (OUs) to share the subnets with. Each value contains the ARN and the path of an OU. If the map is empty, the module shares the subnets with the full organization."
   type = map(
     object({
       arn  = string
@@ -61,7 +58,7 @@ variable "org_units" {
 }
 
 variable "tags" {
-  description = "Tags to apply to add resources provisioned."
+  description = "Tags to apply to all resources that support tags. The map must contain the Environment key."
   type        = map(string)
 
   default = {}
@@ -75,10 +72,4 @@ variable "tags" {
     error_message = "Environment tag must be set."
     condition     = contains(keys(var.tags), "Environment")
   }
-}
-
-locals {
-  azs = length(var.azs) == 0 ? data.aws_availability_zones.available.names : var.azs
-
-  shared_principals = toset(length(var.org_units) > 0 ? [for ou in var.org_units : ou.arn] : [data.aws_organizations_organization.this.arn])
 }

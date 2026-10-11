@@ -6,6 +6,8 @@ updates:
       interval: "daily"
       time: "05:43"
       timezone: "Australia/Sydney"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 5
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -13,4 +15,6 @@ updates:
       interval: "daily"
       time: "04:26"
       timezone: "Australia/Sydney"
+    cooldown:
+      default-days: 3
     open-pull-requests-limit: 5
